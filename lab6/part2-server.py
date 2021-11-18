@@ -1,10 +1,9 @@
-import socket, time, json
+import socket
 
 sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 sock.bind(('127.0.0.1', 8080))
 sock.listen(5)
 
-# while True:
 print('\nlistening...\n')
 (socketClient, addr) = sock.accept()
 print(f"connection from {addr}")
@@ -19,5 +18,3 @@ for line in lines:
     socketClient.sendall(bytearray(f'{line}<br>', "ASCII"))
 
 socketClient.sendall(bytearray("</body></html>\n", "ASCII"))
-
-time.sleep(1)
