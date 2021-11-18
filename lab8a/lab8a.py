@@ -155,7 +155,7 @@ def removeSelectedClientFromServer():
 def removeAllClientsFromServer():
     global g_listOfSockets
     global g_app
-
+    print("removing all clients!!")
     # reversed since deleting first item of list moves 2nd item to first index
     for i in reversed(range(1, len(g_listOfSockets))):
         print(f"index : {i}")
@@ -323,6 +323,7 @@ def closeServer():
     global g_listOfSockets
 
     if (g_serverIsUp):
+        removeAllClientsFromServer()
         g_serverIsUp = False
         g_sockL = None
         g_listOfSockets = []
