@@ -1,10 +1,9 @@
 import queue, math
 
 class Node:
-    def __init__(self, prio, data, char):
+    def __init__(self, prio, data):
         self.prio = prio
         self.data = data
-        self.char = char
     def __lt__(self, other):
         return self.prio<other.prio
     def __str__(self):
@@ -45,60 +44,56 @@ def createHuffmanTree():
     probDistribution = makeProb(makeHisto(byteArr))
 
     pq = queue.PriorityQueue()
-    counter = 0
     for i in range(len(probDistribution)):
         if (probDistribution[i] != 0):
-            pq.put(Node(prio=probDistribution[i], data=counter, char=i))
-            counter += 1
+            pq.put(Node(prio=probDistribution[i], data=i))
+
 
     while (pq.qsize() > 1):
         left, right = pq.get(), pq.get()
-        internalNode = Node((left.prio + right.prio), (left, right), char=None)
+        internalNode = Node(prio=(left.prio + right.prio), data=(left, right))
         pq.put(internalNode)
 
     # return the root of pq
     return pq.get()
 
-def getAverageCodewordLength(node):
+def getAverageCodewordLength(node, binary):
     if (type(node.data) == int):
-        # print(f"node.data: {node.data} , binary: {bin(node.data)[2:]}")
-        return node.prio * len(str(bin(node.data)[2:])) 
+        return node.prio * len(binary) 
     else:
-        if (len(node.data) == 2):
-            left = getAverageCodewordLength(node.data[0])
-            right = getAverageCodewordLength(node.data[1])
-            return left + right
-        elif (len(node.data) == 1):
-            return getAverageCodewordLength(node.data[0])
+        right = getAverageCodewordLength(node.data[1], f"{binary}1")
+        left = getAverageCodewordLength(node.data[0], f"{binary}0")
+        return left + right
 
-def fillDictWithHuffmanTreeValues(node):
+
+def fillDictWithHuffmanTreeValues(node, binary):
     global g_dict
     if (type(node.data) == int):
-        g_dict[node.char] = {
-            "ascii" : f"{chr(node.char)}" if (int(node.char) >= 32 and int(node.char) <= 127) else "",
-            "binary" : bin(node.char)[2:],
-            "binaryLength" : len(str(bin(node.char)[2:])),
-            "idealCodewordLength" :  math.log(1/node.prio, 2)
+        g_dict[node.data] = {
+            "ascii" : f"{chr(node.data)}" if (int(node.data) >= 32 and int(node.data) <= 127) else "",
+            "binary" : binary,
+            "binaryLength" : len(binary),
+            "idealCodewordLength" :  round(math.log(1/node.prio, 2),2)
         } 
     else:
-        if (len(node.data) == 2):
-            #left path
-            fillDictWithHuffmanTreeValues(node.data[0])
-            #right path
-            fillDictWithHuffmanTreeValues(node.data[1])
-        elif (len(node.data) == 1):
-            fillDictWithHuffmanTreeValues(node.data[0])
+        #right path
+        fillDictWithHuffmanTreeValues(node.data[1], f"{binary}1")
+        #left path
+        fillDictWithHuffmanTreeValues(node.data[0], f"{binary}0")
 
 def printDict():
     global g_dict
 
     for i in range(0,255):
         if i in g_dict:
-            print(f"byte={i} <{g_dict[i]['ascii']}> {g_dict[i]['binary']}   len={g_dict[i]['binaryLength']} log(1/p)={g_dict[i]['idealCodewordLength']}")
-
+            noExtraSpaces = f"byte={i} <{g_dict[i]['ascii']}> {g_dict[i]['binary']}   len={g_dict[i]['binaryLength']} log(1/p)={g_dict[i]['idealCodewordLength']}"
+            addedSpaces = (65 - len(noExtraSpaces)) * " "
+            extraSpaces = f"byte={i} <{g_dict[i]['ascii']}> {g_dict[i]['binary']} {addedSpaces} len={g_dict[i]['binaryLength']} log(1/p)={g_dict[i]['idealCodewordLength']}"
+            print(extraSpaces)
+            
 g_dict = {}
 
 huffmanTreeRoot = createHuffmanTree()
-print(getAverageCodewordLength(huffmanTreeRoot))
-fillDictWithHuffmanTreeValues(huffmanTreeRoot)
+print(getAverageCodewordLength(huffmanTreeRoot, ""))
+fillDictWithHuffmanTreeValues(huffmanTreeRoot, "")
 printDict()
